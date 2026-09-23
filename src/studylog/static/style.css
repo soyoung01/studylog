@@ -1,0 +1,120 @@
+:root {
+  --paper: #f3f5f7;
+  --card: #ffffff;
+  --ink: #1d2b3a;
+  --slate: #5e6e80;
+  --rule: #c9d4e0;
+  --marker: #f5df4d;
+  --danger: #b3261e;
+  --font: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+
+.topbar {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 1rem;
+}
+.brand { font-size: 1.5rem; font-weight: 700; text-decoration: none; letter-spacing: -0.02em; }
+.version { color: var(--slate); font-size: 0.85rem; }
+
+main { max-width: 1080px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+
+.layout { display: grid; grid-template-columns: 300px 1fr; gap: 2rem; align-items: start; }
+@media (max-width: 760px) { .layout { grid-template-columns: 1fr; } }
+
+.panel { margin-bottom: 1.75rem; }
+.panel h2 { font-size: 1rem; margin: 0 0 0.75rem; }
+
+.note-form { display: grid; gap: 0.75rem; }
+label { display: grid; gap: 0.25rem; font-size: 0.9rem; font-weight: 500; }
+label small { color: var(--slate); font-weight: 400; }
+
+input, textarea {
+  font: inherit;
+  color: var(--ink);
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+}
+textarea { resize: vertical; }
+
+button {
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  border: 0;
+  border-radius: 6px;
+  padding: 0.6rem 1rem;
+  background: var(--ink);
+  color: #fff;
+}
+button.danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+
+.tag-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.tag {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+.tag.is-active { background: var(--marker); border-color: var(--marker); font-weight: 500; }
+
+.search { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.search input { flex: 1; }
+.filter-state { margin: 0 0 1rem; }
+
+.note {
+  background: var(--card);
+  border-left: 4px solid var(--rule);
+  padding: 1.1rem 1.3rem;
+  margin-bottom: 1rem;
+}
+.note:hover { border-left-color: var(--marker); }
+.note h3 { margin: 0.1rem 0 0.5rem; font-size: 1.2rem; line-height: 1.4; }
+.note h3 a { text-decoration: none; }
+
+/* 형광펜 밑줄: 이 앱의 한 가지 시그니처 */
+.hl {
+  background: linear-gradient(transparent 58%, var(--marker) 58%, var(--marker) 92%, transparent 92%);
+  padding: 0 0.1em;
+}
+
+.note-course { margin: 0; color: var(--slate); font-size: 0.85rem; }
+.note-body { white-space: pre-line; margin: 0 0 0.75rem; max-width: 68ch; }
+
+footer { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; font-size: 0.85rem; color: var(--slate); }
+.chip { text-decoration: none; color: var(--ink); }
+.chip:hover { text-decoration: underline; }
+
+.muted { color: var(--slate); font-size: 0.9rem; }
+.empty { padding: 2rem 0; }
+.empty p { margin: 0.2rem 0; }
+
+.flashes { max-width: 1080px; margin: 0 auto; padding: 0 1.25rem; }
+.flash { margin: 0 0 1rem; padding: 0.6rem 0.9rem; border-radius: 6px; background: var(--card); border: 1px solid var(--rule); }
+.flash-error { border-color: var(--danger); color: var(--danger); }
+
+.detail { max-width: 720px; background: var(--card); padding: 2rem; }
+.detail h1 { font-size: 1.8rem; line-height: 1.35; margin: 0.2rem 0 1rem; letter-spacing: -0.01em; }
+.detail form { margin-top: 2rem; }
+.back { display: inline-block; margin-bottom: 1rem; font-size: 0.9rem; color: var(--slate); }

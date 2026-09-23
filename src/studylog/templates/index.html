@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="layout">
+  <aside class="side">
+    <section class="panel">
+      <h2>새 노트</h2>
+      <form method="post" action="{{ url_for('create_note') }}" class="note-form">
+        <label>강의
+          <input name="course" placeholder="Claude Code in action">
+        </label>
+        <label>제목
+          <input name="title" required placeholder="오늘 배운 한 가지">
+        </label>
+        <label>내용
+          <textarea name="body" rows="5" required placeholder="핵심만 짧게 적어두세요"></textarea>
+        </label>
+        <label>태그 <small>쉼표로 구분</small>
+          <input name="tags" placeholder="claudecode, plan mode">
+        </label>
+        <button type="submit">노트 저장</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>태그</h2>
+      {% if tags %}
+        <ul class="tag-list">
+          <li><a href="{{ url_for('index') }}" class="tag {% if not active_tag %}is-active{% endif %}">전체 {{ total }}</a></li>
+          {% for name, count in tags %}
+            <li><a href="{{ url_for('index', tag=name) }}" class="tag {% if active_tag == name %}is-active{% endif %}">#{{ name }} {{ count }}</a></li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="muted">노트를 저장하면 태그가 여기에 모여요.</p>
+      {% endif %}
+    </section>
+  </aside>
+
+  <section class="feed">
+    <form method="get" action="{{ url_for('index') }}" class="search">
+      {% if active_tag %}<input type="hidden" name="tag" value="{{ active_tag }}">{% endif %}
+      <input type="search" name="q" value="{{ query }}" placeholder="제목이나 내용으로 검색" aria-label="노트 검색">
+      <button type="submit">검색</button>
+    </form>
+
+    {% if active_tag or query %}
+      <p class="muted filter-state">
+        {% if active_tag %}#{{ active_tag }}{% endif %}
+        {% if query %}“{{ query }}”{% endif %}
+        결과 {{ notes|length }}개 · <a href="{{ url_for('index') }}">필터 해제</a>
+      </p>
+    {% endif %}
+
+    {% for note in notes %}
+      <article class="note">
+        <p class="note-course">{{ note.course }}</p>
+        <h3><a href="{{ url_for('note_detail', note_id=note.id) }}"><span class="hl">{{ note.title }}</span></a></h3>
+        <p class="note-body">{{ note.body }}</p>
+        <footer>
+          <time>{{ note.created_at }}</time>
+          {% for t in note.tags %}<a class="chip" href="{{ url_for('index', tag=t) }}">#{{ t }}</a>{% endfor %}
+        </footer>
+      </article>
+    {% else %}
+      <div class="empty">
+        <p>조건에 맞는 노트가 없어요.</p>
+        <p class="muted">왼쪽에서 새 노트를 저장하거나 검색어를 바꿔보세요.</p>
+      </div>
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{{ note.title }} | Studylog{% endblock %}
+{% block content %}
+<article class="detail">
+  <a class="back" href="{{ url_for('index') }}">목록으로</a>
+  <p class="note-course">{{ note.course }}</p>
+  <h1><span class="hl">{{ note.title }}</span></h1>
+  <p class="note-body">{{ note.body }}</p>
+  <footer>
+    <time>{{ note.created_at }}</time>
+    {% for t in note.tags %}<a class="chip" href="{{ url_for('index', tag=t) }}">#{{ t }}</a>{% endfor %}
+  </footer>
+  <form method="post" action="{{ url_for('delete_note', note_id=note.id) }}"
+        onsubmit="return confirm('이 노트를 삭제할까요?');">
+    <button type="submit" class="danger">노트 삭제</button>
+  </form>
+</article>
+{% endblock %}
