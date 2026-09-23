@@ -1,13 +1,23 @@
 from __future__ import annotations
 
+import argparse
 import os
+from collections.abc import Sequence
 
 from dotenv import load_dotenv
 
+from . import __version__
 from .app import create_app
 
 
-def main() -> None:
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="studylog")
+    parser.add_argument("--version", action="version", version=f"studylog {__version__}")
+    return parser
+
+
+def main(argv: Sequence[str] | None = None) -> None:
+    build_parser().parse_args(argv)
     load_dotenv()
     port = int(os.getenv("STUDYLOG_PORT", "5000"))
     app = create_app()
