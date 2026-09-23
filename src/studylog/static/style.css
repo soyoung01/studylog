@@ -116,5 +116,6 @@ footer { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; font-
 
 .detail { max-width: 720px; background: var(--card); padding: 2rem; }
 .detail h1 { font-size: 1.8rem; line-height: 1.35; margin: 0.2rem 0 1rem; letter-spacing: -0.01em; }
-.detail form { margin-top: 2rem; }
+.detail .actions { display: flex; align-items: center; gap: 1rem; margin-top: 2rem; }
+.detail .actions .back { margin: 0; }
 .back { display: inline-block; margin-bottom: 1rem; font-size: 0.9rem; color: var(--slate); }

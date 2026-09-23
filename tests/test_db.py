@@ -22,6 +22,23 @@ def test_all_tags_counts(repo: NoteRepository) -> None:
     assert repo.all_tags() == [("a", 2), ("b", 1)]
 
 
+def test_update(repo: NoteRepository) -> None:
+    note = repo.add("강의", "원래 제목", "원래 내용", ["a"])
+    updated = repo.update(note.id, "새 강의", "새 제목", "새 내용", ["b", "c"])
+    assert updated is not None
+    assert updated.course == "새 강의"
+    assert updated.title == "새 제목"
+    assert updated.body == "새 내용"
+    assert updated.tags == ["b", "c"]
+    fetched = repo.get(note.id)
+    assert fetched is not None
+    assert fetched.title == "새 제목"
+
+
+def test_update_missing_note_returns_none(repo: NoteRepository) -> None:
+    assert repo.update(999, "강의", "제목", "내용", []) is None
+
+
 def test_delete(repo: NoteRepository) -> None:
     note = repo.add("강의", "삭제", "x", [])
     assert repo.delete(note.id) is True

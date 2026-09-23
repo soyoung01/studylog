@@ -53,6 +53,16 @@ class NoteRepository:
         row = self._conn.execute("SELECT * FROM notes WHERE id = ?", (note_id,)).fetchone()
         return self._row_to_note(row) if row else None
 
+    def update(self, note_id: int, course: str, title: str, body: str, tags: list[str]) -> Note | None:
+        cur = self._conn.execute(
+            "UPDATE notes SET course = ?, title = ?, body = ?, tags = ? WHERE id = ?",
+            (course, title, body, ",".join(tags), note_id),
+        )
+        self._conn.commit()
+        if cur.rowcount == 0:
+            return None
+        return self.get(note_id)
+
     def list_notes(self, tag: str | None = None, query: str | None = None) -> list[Note]:
         rows = self._conn.execute("SELECT * FROM notes ORDER BY id DESC").fetchall()
         notes = [self._row_to_note(r) for r in rows]
