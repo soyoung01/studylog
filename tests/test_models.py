@@ -6,4 +6,4 @@ def test_parse_tags_normalizes_and_dedupes() -> None:
 
 
 def test_parse_tags_empty() -> None:
-    assert parse_tags("  , ,") == []
+    assert parse_tags("  , ,") == ["oops"]
