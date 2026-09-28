@@ -34,6 +34,11 @@
         <p class="muted">노트를 저장하면 태그가 여기에 모여요.</p>
       {% endif %}
     </section>
+
+    <section class="panel">
+      <h2>내보내기</h2>
+      <a href="{{ url_for('export_notes') }}" download>노트 전체 Markdown으로 내보내기</a>
+    </section>
   </aside>
 
   <section class="feed">

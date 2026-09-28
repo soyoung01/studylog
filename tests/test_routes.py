@@ -70,5 +70,33 @@ def test_api_notes_filters_by_tag(client: FlaskClient, repo: NoteRepository) -> 
     assert [n["title"] for n in data] == ["b"]
 
 
+def test_export_returns_markdown_attachment(client: FlaskClient, repo: NoteRepository) -> None:
+    repo.add("강의A", "첫 노트", "첫 내용", ["one", "two"])
+    repo.add("강의B", "둘째 노트", "둘째 내용", [])
+    res = client.get("/export")
+    assert res.status_code == 200
+    assert res.mimetype == "text/markdown"
+    assert "attachment" in res.headers["Content-Disposition"]
+    assert "studylog-notes.md" in res.headers["Content-Disposition"]
+    text = res.get_data(as_text=True)
+    assert "## 첫 노트" in text
+    assert "- 강의: 강의A" in text
+    assert "- 태그: #one #two" in text
+    assert "첫 내용" in text
+    assert "## 둘째 노트" in text
+
+
+def test_index_links_to_export(client: FlaskClient) -> None:
+    text = client.get("/").get_data(as_text=True)
+    assert 'href="/export"' in text
+    assert "노트 전체 Markdown으로 내보내기" in text
+
+
+def test_export_empty(client: FlaskClient) -> None:
+    res = client.get("/export")
+    assert res.status_code == 200
+    assert res.get_data(as_text=True).startswith("# Studylog 노트")
+
+
 def test_health(client: FlaskClient) -> None:
     assert client.get("/health").get_json()["status"] == "ok"

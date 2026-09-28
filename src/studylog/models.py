@@ -23,6 +23,16 @@ class Note:
         }
 
 
+def notes_to_markdown(notes: list[Note]) -> str:
+    lines = ["# Studylog 노트", ""]
+    for note in notes:
+        lines += [f"## {note.title}", "", f"- 강의: {note.course}", f"- 작성: {note.created_at}"]
+        if note.tags:
+            lines.append("- 태그: " + " ".join(f"#{t}" for t in note.tags))
+        lines += ["", note.body, "", "---", ""]
+    return "\n".join(lines)
+
+
 def parse_tags(raw: str) -> list[str]:
     """'#ClaudeCode, plan mode ,#CLI' -> ['claudecode', 'plan mode', 'cli']"""
     tags: list[str] = []
