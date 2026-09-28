@@ -12,6 +12,10 @@ from .db import NoteRepository
 from .models import parse_tags
 from .seed import seed_if_empty
 
+THEME_COOKIE = "theme"
+THEMES = ("light", "dark")
+THEME_MAX_AGE = 60 * 60 * 24 * 365
+
 
 def create_app(config: dict[str, Any] | None = None) -> Flask:
     load_dotenv()
@@ -31,7 +35,21 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
 
     @app.context_processor
     def inject_globals() -> dict[str, Any]:
-        return {"version": __version__}
+        theme = request.cookies.get(THEME_COOKIE)
+        return {"version": __version__, "theme": theme if theme in THEMES else None}
+
+    @app.post("/theme")
+    def set_theme() -> Response:
+        theme = request.form.get("theme", "")
+        if theme not in THEMES:
+            abort(400)
+        next_url = request.form.get("next", "")
+        # 같은 사이트 안의 경로로만 돌아간다 (오픈 리다이렉트 방지)
+        if not next_url.startswith("/") or next_url.startswith("//"):
+            next_url = url_for("index")
+        res = redirect(next_url)
+        res.set_cookie(THEME_COOKIE, theme, max_age=THEME_MAX_AGE, samesite="Lax", httponly=True)
+        return res
 
     @app.get("/")
     def index() -> str:

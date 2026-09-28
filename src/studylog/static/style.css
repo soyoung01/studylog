@@ -7,6 +7,37 @@
   --marker: #f5df4d;
   --danger: #b3261e;
   --font: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --show-to-dark: inline-block;
+  --show-to-light: none;
+}
+
+/* 다크 모드: 변수 값만 교체한다. 형광펜은 밝은 글자가 올라가도 읽히도록 어두운 호박색으로 낮춘다.
+   시스템 설정을 따르되, 스위치로 고른 값(data-theme)이 있으면 그쪽이 이긴다. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #11161c;
+    --card: #1a222c;
+    --ink: #e3e9ef;
+    --slate: #9aa9b9;
+    --rule: #33414f;
+    --marker: #7a6515;
+    --danger: #ff8a80;
+    --show-to-dark: none;
+    --show-to-light: inline-block;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #11161c;
+  --card: #1a222c;
+  --ink: #e3e9ef;
+  --slate: #9aa9b9;
+  --rule: #33414f;
+  --marker: #7a6515;
+  --danger: #ff8a80;
+  --show-to-dark: none;
+  --show-to-light: inline-block;
 }
 
 * { box-sizing: border-box; }
@@ -33,6 +64,17 @@ a { color: inherit; }
 }
 .brand { font-size: 1.5rem; font-weight: 700; text-decoration: none; letter-spacing: -0.02em; }
 .version { color: var(--slate); font-size: 0.85rem; }
+
+.theme-switch { margin-left: auto; }
+.theme-switch button {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  padding: 0.3rem 0.75rem;
+  font-size: 0.85rem;
+}
+.theme-switch .theme-to-dark { display: var(--show-to-dark); }
+.theme-switch .theme-to-light { display: var(--show-to-light); }
 
 main { max-width: 1080px; margin: 0 auto; padding: 0 1.25rem 4rem; }
 
@@ -64,7 +106,7 @@ button {
   border-radius: 6px;
   padding: 0.6rem 1rem;
   background: var(--ink);
-  color: #fff;
+  color: var(--card);
 }
 button.danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
 
