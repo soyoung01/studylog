@@ -59,18 +59,3 @@ studylog/
 │   └── static/style.css
 └── tests/
 ```
-
-## 실습 과제 목록
-
-Claude Code 기능을 연습할 때 골라 쓰세요. 난이도 순입니다.
-
-| 과제 | 연습하기 좋은 기능 |
-|---|---|
-| `python -m studylog --version` 플래그 추가 | Plan mode, /compact |
-| 노트 수정 기능 (`/notes/<id>/edit`) | Plan mode, Rewind |
-| 노트 본문 Markdown 렌더링 | Rewind (라이브러리 선택 되돌리기) |
-| 목록 페이지네이션 (10개씩) | /goal (테스트·mypy 통과 조건) |
-| 강의별 필터와 강의 목록 사이드바 | /goal |
-| 노트 전체를 Markdown 파일로 내보내기 | Worktree (다른 과제와 병렬) |
-| 다크 모드 | Worktree (UI 작업 분리) |
-| CI 실패 시 원인 분석 | /loop |
