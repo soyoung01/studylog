@@ -25,6 +25,44 @@ def test_note_detail_404(client: FlaskClient) -> None:
     assert client.get("/notes/999").status_code == 404
 
 
+def test_edit_note_form_renders(client: FlaskClient, repo: NoteRepository) -> None:
+    note = repo.add("강의", "원래 제목", "원래 내용", ["a"])
+    res = client.get(f"/notes/{note.id}/edit")
+    assert res.status_code == 200
+    assert "원래 제목" in res.get_data(as_text=True)
+
+
+def test_edit_note_form_404(client: FlaskClient) -> None:
+    assert client.get("/notes/999/edit").status_code == 404
+
+
+def test_edit_note_updates_and_redirects(client: FlaskClient, repo: NoteRepository) -> None:
+    note = repo.add("강의", "원래 제목", "원래 내용", ["a"])
+    res = client.post(
+        f"/notes/{note.id}/edit",
+        data={"course": "새 강의", "title": "새 제목", "body": "새 내용", "tags": "b, c"},
+    )
+    assert res.status_code == 302
+    assert res.headers["Location"] == f"/notes/{note.id}"
+    updated = repo.get(note.id)
+    assert updated is not None
+    assert updated.title == "새 제목"
+    assert updated.tags == ["b", "c"]
+
+
+def test_edit_note_requires_title_and_body(client: FlaskClient, repo: NoteRepository) -> None:
+    note = repo.add("강의", "원래 제목", "원래 내용", ["a"])
+    client.post(f"/notes/{note.id}/edit", data={"title": "", "body": ""})
+    unchanged = repo.get(note.id)
+    assert unchanged is not None
+    assert unchanged.title == "원래 제목"
+
+
+def test_edit_note_404(client: FlaskClient) -> None:
+    res = client.post("/notes/999/edit", data={"title": "t", "body": "b"})
+    assert res.status_code == 404
+
+
 def test_api_notes_filters_by_tag(client: FlaskClient, repo: NoteRepository) -> None:
     repo.add("강의", "a", "x", ["one"])
     repo.add("강의", "b", "y", ["two"])

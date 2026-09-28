@@ -65,6 +65,27 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             abort(404)
         return render_template("note.html", note=note)
 
+    @app.get("/notes/<int:note_id>/edit")
+    def edit_note_form(note_id: int) -> str:
+        note = repo.get(note_id)
+        if note is None:
+            abort(404)
+        return render_template("edit.html", note=note)
+
+    @app.post("/notes/<int:note_id>/edit")
+    def edit_note(note_id: int) -> Response:
+        if repo.get(note_id) is None:
+            abort(404)
+        course = request.form.get("course", "").strip()
+        title = request.form.get("title", "").strip()
+        body = request.form.get("body", "").strip()
+        if not title or not body:
+            flash("제목과 내용을 모두 입력해야 저장할 수 있어요.", "error")
+            return redirect(url_for("edit_note_form", note_id=note_id))
+        repo.update(note_id, course or "기타", title, body, parse_tags(request.form.get("tags", "")))
+        flash("노트를 수정했어요.", "ok")
+        return redirect(url_for("note_detail", note_id=note_id))
+
     @app.post("/notes/<int:note_id>/delete")
     def delete_note(note_id: int) -> Response:
         if not repo.delete(note_id):
