@@ -70,5 +70,44 @@ def test_api_notes_filters_by_tag(client: FlaskClient, repo: NoteRepository) -> 
     assert [n["title"] for n in data] == ["b"]
 
 
+def test_stylesheet_has_dark_mode(client: FlaskClient) -> None:
+    res = client.get("/static/style.css")
+    assert res.status_code == 200
+    assert "@media (prefers-color-scheme: dark)" in res.get_data(as_text=True)
+    res.close()
+
+
+def test_theme_defaults_to_system(client: FlaskClient) -> None:
+    html = client.get("/").get_data(as_text=True)
+    assert "data-theme" not in html
+    assert "다크 모드로 전환" in html
+    assert "라이트 모드로 전환" in html
+
+
+def test_set_theme_sets_cookie_and_redirects_back(client: FlaskClient) -> None:
+    res = client.post("/theme", data={"theme": "dark", "next": "/?tag=x"})
+    assert res.status_code == 302
+    assert res.headers["Location"] == "/?tag=x"
+    assert "theme=dark" in res.headers["Set-Cookie"]
+    assert 'data-theme="dark"' in client.get("/").get_data(as_text=True)
+
+    client.post("/theme", data={"theme": "light", "next": "/"})
+    assert 'data-theme="light"' in client.get("/").get_data(as_text=True)
+
+
+def test_set_theme_rejects_unknown_value(client: FlaskClient) -> None:
+    assert client.post("/theme", data={"theme": "neon"}).status_code == 400
+
+
+def test_set_theme_ignores_external_next(client: FlaskClient) -> None:
+    res = client.post("/theme", data={"theme": "dark", "next": "//evil.example"})
+    assert res.headers["Location"] == "/"
+
+
+def test_invalid_theme_cookie_is_ignored(client: FlaskClient) -> None:
+    client.set_cookie("theme", "neon")
+    assert "data-theme" not in client.get("/").get_data(as_text=True)
+
+
 def test_health(client: FlaskClient) -> None:
     assert client.get("/health").get_json()["status"] == "ok"
