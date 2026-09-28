@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko"{% if theme %} data-theme="{{ theme }}"{% endif %}>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,6 +13,11 @@
   <header class="topbar">
     <a class="brand" href="{{ url_for('index') }}">Studylog</a>
     <span class="version">v{{ version }}</span>
+    <form class="theme-switch" method="post" action="{{ url_for('set_theme') }}">
+      <input type="hidden" name="next" value="{{ request.full_path }}">
+      <button class="theme-to-dark" type="submit" name="theme" value="dark">다크 모드로 전환</button>
+      <button class="theme-to-light" type="submit" name="theme" value="light">라이트 모드로 전환</button>
+    </form>
   </header>
 
   {% with messages = get_flashed_messages(with_categories=true) %}
