@@ -9,7 +9,7 @@ from werkzeug.wrappers import Response
 
 from . import __version__
 from .db import NoteRepository
-from .models import parse_tags
+from .models import notes_to_markdown, parse_tags
 from .seed import seed_if_empty
 
 THEME_COOKIE = "theme"
@@ -115,6 +115,14 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     def api_notes() -> Response:
         notes = repo.list_notes(tag=request.args.get("tag") or None, query=request.args.get("q") or None)
         return jsonify([n.to_dict() for n in notes])
+
+    @app.get("/export")
+    def export_notes() -> Response:
+        return Response(
+            notes_to_markdown(repo.list_notes()),
+            mimetype="text/markdown",
+            headers={"Content-Disposition": "attachment; filename=studylog-notes.md"},
+        )
 
     @app.get("/health")
     def health() -> Response:
