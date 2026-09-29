@@ -62,14 +62,14 @@
         <footer>
           <time>{{ note.created_at }}</time>
           {% for t in note.tags %}<a class="chip" href="{{ url_for('index', tag=t) }}">#{{ t }}</a>{% endfor %}
+          <form method="post" action="{{ url_for('set_favorite', note_id=note.id) }}" class="fav-form">
+            <input type="hidden" name="favorite" value="{{ '0' if note.favorite else '1' }}">
+            <input type="hidden" name="next" value="{{ request.full_path }}">
+            <button type="submit" class="fav{{ ' is-on' if note.favorite }}">
+              {{ '★ 즐겨찾기 해제' if note.favorite else '☆ 즐겨찾기에 추가' }}
+            </button>
+          </form>
         </footer>
-        <form method="post" action="{{ url_for('set_favorite', note_id=note.id) }}" class="fav-form">
-          <input type="hidden" name="favorite" value="{{ '0' if note.favorite else '1' }}">
-          <input type="hidden" name="next" value="{{ request.full_path }}">
-          <button type="submit" class="fav{{ ' is-on' if note.favorite }}">
-            {{ '★ 즐겨찾기 해제' if note.favorite else '☆ 즐겨찾기에 추가' }}
-          </button>
-        </form>
       </article>
     {% else %}
       <div class="empty">

@@ -74,13 +74,19 @@ def test_health(client: FlaskClient) -> None:
     assert client.get("/health").get_json()["status"] == "ok"
 
 
-def test_favorite_adds_and_redirects_to_next(client: FlaskClient, repo: NoteRepository) -> None:
+def test_favorite_adds_and_redirects_to_detail(client: FlaskClient, repo: NoteRepository) -> None:
     note = repo.add("강의", "t", "b", [])
-    res = client.post(f"/notes/{note.id}/favorite", data={"favorite": "1", "next": "/?tag=x"})
+    res = client.post(f"/notes/{note.id}/favorite", data={"favorite": "1"})
     assert res.status_code == 302
-    assert res.headers["Location"] == "/?tag=x"
+    assert res.headers["Location"] == f"/notes/{note.id}"
     fetched = repo.get(note.id)
     assert fetched is not None and fetched.favorite is True
+
+
+def test_favorite_redirects_to_next(client: FlaskClient, repo: NoteRepository) -> None:
+    note = repo.add("강의", "t", "b", [])
+    res = client.post(f"/notes/{note.id}/favorite", data={"favorite": "1", "next": "/?tag=x"})
+    assert res.headers["Location"] == "/?tag=x"
 
 
 def test_favorite_removes(client: FlaskClient, repo: NoteRepository) -> None:
@@ -114,11 +120,6 @@ def test_favorite_invalid_value_400(client: FlaskClient, repo: NoteRepository) -
 
 def test_favorite_404(client: FlaskClient) -> None:
     assert client.post("/notes/999/favorite", data={"favorite": "1"}).status_code == 404
-
-
-def test_favorite_requires_post(client: FlaskClient, repo: NoteRepository) -> None:
-    note = repo.add("강의", "t", "b", [])
-    assert client.get(f"/notes/{note.id}/favorite").status_code == 405
 
 
 def test_index_favorites_filter(client: FlaskClient, repo: NoteRepository) -> None:

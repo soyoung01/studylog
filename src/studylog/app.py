@@ -15,7 +15,7 @@ from .seed import seed_if_empty
 
 
 def _is_safe_redirect(target: str) -> bool:
-    """외부 사이트로 튕기는 오픈 리다이렉트를 막기 위해 앱 내부 경로만 허용한다."""
+    # 같은 사이트 내부 경로로만 되돌아가도록 제한한다(오픈 리다이렉트 방지).
     parts = urlsplit(target)
     return target.startswith("/") and not target.startswith("//") and not parts.scheme and not parts.netloc
 
@@ -111,10 +111,10 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         if not repo.set_favorite(note_id, favorite):
             abort(404)
         flash("즐겨찾기에 추가했어요." if favorite else "즐겨찾기에서 해제했어요.", "ok")
-        target = request.form.get("next", "")
-        if not _is_safe_redirect(target):
-            target = url_for("note_detail", note_id=note_id)
-        return redirect(target)
+        next_url = request.form.get("next", "")
+        if _is_safe_redirect(next_url):
+            return redirect(next_url)
+        return redirect(url_for("note_detail", note_id=note_id))
 
     @app.get("/api/notes")
     def api_notes() -> Response:

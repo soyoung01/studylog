@@ -80,14 +80,13 @@ def test_migrates_db_without_favorite_column(tmp_path: Path) -> None:
     db_path = str(tmp_path / "old.db")
     conn = sqlite3.connect(db_path)
     conn.execute(
-        "CREATE TABLE notes (id INTEGER PRIMARY KEY AUTOINCREMENT, course TEXT NOT NULL, "
-        "title TEXT NOT NULL, body TEXT NOT NULL, tags TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL)"
+        "CREATE TABLE notes (id INTEGER PRIMARY KEY AUTOINCREMENT, course TEXT NOT NULL, title TEXT NOT NULL,"
+        " body TEXT NOT NULL, tags TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL)"
     )
     conn.execute("INSERT INTO notes (course, title, body, tags, created_at) VALUES ('강의', '옛 노트', 'x', '', '2026-01-01 00:00')")
     conn.commit()
     conn.close()
-
     repo = NoteRepository(db_path)
-    [note] = repo.list_notes()
+    note = repo.list_notes()[0]
     assert note.favorite is False
     assert repo.set_favorite(note.id, True) is True
