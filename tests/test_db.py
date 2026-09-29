@@ -1,3 +1,6 @@
+import sqlite3
+from pathlib import Path
+
 from studylog.db import NoteRepository
 
 
@@ -44,3 +47,47 @@ def test_delete(repo: NoteRepository) -> None:
     assert repo.delete(note.id) is True
     assert repo.get(note.id) is None
     assert repo.delete(note.id) is False
+
+
+def test_new_note_is_not_favorite(repo: NoteRepository) -> None:
+    note = repo.add("강의", "제목", "내용", [])
+    assert note.favorite is False
+
+
+def test_set_favorite(repo: NoteRepository) -> None:
+    note = repo.add("강의", "제목", "내용", [])
+    assert repo.set_favorite(note.id, True) is True
+    fetched = repo.get(note.id)
+    assert fetched is not None and fetched.favorite is True
+    assert repo.set_favorite(note.id, False) is True
+    fetched = repo.get(note.id)
+    assert fetched is not None and fetched.favorite is False
+
+
+def test_set_favorite_missing_note_returns_false(repo: NoteRepository) -> None:
+    assert repo.set_favorite(999, True) is False
+
+
+def test_list_favorites_only(repo: NoteRepository) -> None:
+    a = repo.add("강의", "a", "x", ["t"])
+    repo.add("강의", "b", "y", ["t"])
+    repo.set_favorite(a.id, True)
+    assert [n.title for n in repo.list_notes(favorites_only=True)] == ["a"]
+    assert [n.title for n in repo.list_notes(tag="t", favorites_only=True)] == ["a"]
+
+
+def test_migrates_db_without_favorite_column(tmp_path: Path) -> None:
+    db_path = str(tmp_path / "old.db")
+    conn = sqlite3.connect(db_path)
+    conn.execute(
+        "CREATE TABLE notes (id INTEGER PRIMARY KEY AUTOINCREMENT, course TEXT NOT NULL, "
+        "title TEXT NOT NULL, body TEXT NOT NULL, tags TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL)"
+    )
+    conn.execute("INSERT INTO notes (course, title, body, tags, created_at) VALUES ('강의', '옛 노트', 'x', '', '2026-01-01 00:00')")
+    conn.commit()
+    conn.close()
+
+    repo = NoteRepository(db_path)
+    [note] = repo.list_notes()
+    assert note.favorite is False
+    assert repo.set_favorite(note.id, True) is True

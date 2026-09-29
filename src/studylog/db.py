@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS notes (
     title TEXT NOT NULL,
     body TEXT NOT NULL,
     tags TEXT NOT NULL DEFAULT '',
-    created_at TEXT NOT NULL
+    created_at TEXT NOT NULL,
+    favorite INTEGER NOT NULL DEFAULT 0
 );
 """
 
@@ -26,6 +27,14 @@ class NoteRepository:
         self._conn = sqlite3.connect(db_path, check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
         self._conn.executescript(SCHEMA)
+        self._migrate()
+
+    def _migrate(self) -> None:
+        # 즐겨찾기 기능 이전에 만들어진 DB에는 favorite 컬럼이 없다.
+        columns = {row["name"] for row in self._conn.execute("PRAGMA table_info(notes)")}
+        if "favorite" not in columns:
+            self._conn.execute("ALTER TABLE notes ADD COLUMN favorite INTEGER NOT NULL DEFAULT 0")
+            self._conn.commit()
 
     def _row_to_note(self, row: sqlite3.Row) -> Note:
         tags = [t for t in row["tags"].split(",") if t]
@@ -36,6 +45,7 @@ class NoteRepository:
             body=row["body"],
             created_at=row["created_at"],
             tags=tags,
+            favorite=bool(row["favorite"]),
         )
 
     def add(self, course: str, title: str, body: str, tags: list[str]) -> Note:
@@ -63,9 +73,18 @@ class NoteRepository:
             return None
         return self.get(note_id)
 
-    def list_notes(self, tag: str | None = None, query: str | None = None) -> list[Note]:
+    def set_favorite(self, note_id: int, favorite: bool) -> bool:
+        cur = self._conn.execute("UPDATE notes SET favorite = ? WHERE id = ?", (int(favorite), note_id))
+        self._conn.commit()
+        return cur.rowcount > 0
+
+    def list_notes(
+        self, tag: str | None = None, query: str | None = None, favorites_only: bool = False
+    ) -> list[Note]:
         rows = self._conn.execute("SELECT * FROM notes ORDER BY id DESC").fetchall()
         notes = [self._row_to_note(r) for r in rows]
+        if favorites_only:
+            notes = [n for n in notes if n.favorite]
         if tag:
             notes = [n for n in notes if tag in n.tags]
         if query:

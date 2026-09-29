@@ -119,3 +119,15 @@ footer { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; font-
 .detail .actions { display: flex; align-items: center; gap: 1rem; margin-top: 2rem; }
 .detail .actions .back { margin: 0; }
 .back { display: inline-block; margin-bottom: 1rem; font-size: 0.9rem; color: var(--slate); }
+
+.fav-form { margin: 0.75rem 0 0; }
+.detail .actions .fav-form { margin: 0; }
+button.fav {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  padding: 0.3rem 0.75rem;
+  font-size: 0.85rem;
+}
+button.fav.is-on { background: var(--marker); border-color: var(--marker); }
+.fav-mark { color: var(--ink); }

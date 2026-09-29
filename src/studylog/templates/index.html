@@ -25,7 +25,8 @@
       <h2>태그</h2>
       {% if tags %}
         <ul class="tag-list">
-          <li><a href="{{ url_for('index') }}" class="tag {% if not active_tag %}is-active{% endif %}">전체 {{ total }}</a></li>
+          <li><a href="{{ url_for('index') }}" class="tag {% if not active_tag and not favorites_only %}is-active{% endif %}">전체 {{ total }}</a></li>
+          <li><a href="{{ url_for('index', favorites=1) }}" class="tag {% if favorites_only and not active_tag %}is-active{% endif %}">★ 즐겨찾기만 보기</a></li>
           {% for name, count in tags %}
             <li><a href="{{ url_for('index', tag=name) }}" class="tag {% if active_tag == name %}is-active{% endif %}">#{{ name }} {{ count }}</a></li>
           {% endfor %}
@@ -39,12 +40,14 @@
   <section class="feed">
     <form method="get" action="{{ url_for('index') }}" class="search">
       {% if active_tag %}<input type="hidden" name="tag" value="{{ active_tag }}">{% endif %}
+      {% if favorites_only %}<input type="hidden" name="favorites" value="1">{% endif %}
       <input type="search" name="q" value="{{ query }}" placeholder="제목이나 내용으로 검색" aria-label="노트 검색">
       <button type="submit">검색</button>
     </form>
 
-    {% if active_tag or query %}
+    {% if active_tag or query or favorites_only %}
       <p class="muted filter-state">
+        {% if favorites_only %}★ 즐겨찾기{% endif %}
         {% if active_tag %}#{{ active_tag }}{% endif %}
         {% if query %}“{{ query }}”{% endif %}
         결과 {{ notes|length }}개 · <a href="{{ url_for('index') }}">필터 해제</a>
@@ -53,13 +56,20 @@
 
     {% for note in notes %}
       <article class="note">
-        <p class="note-course">{{ note.course }}</p>
+        <p class="note-course">{% if note.favorite %}<span class="fav-mark" aria-label="즐겨찾기한 노트">★</span> {% endif %}{{ note.course }}</p>
         <h3><a href="{{ url_for('note_detail', note_id=note.id) }}"><span class="hl">{{ note.title }}</span></a></h3>
         <p class="note-body">{{ note.body }}</p>
         <footer>
           <time>{{ note.created_at }}</time>
           {% for t in note.tags %}<a class="chip" href="{{ url_for('index', tag=t) }}">#{{ t }}</a>{% endfor %}
         </footer>
+        <form method="post" action="{{ url_for('set_favorite', note_id=note.id) }}" class="fav-form">
+          <input type="hidden" name="favorite" value="{{ '0' if note.favorite else '1' }}">
+          <input type="hidden" name="next" value="{{ request.full_path }}">
+          <button type="submit" class="fav{{ ' is-on' if note.favorite }}">
+            {{ '★ 즐겨찾기 해제' if note.favorite else '☆ 즐겨찾기에 추가' }}
+          </button>
+        </form>
       </article>
     {% else %}
       <div class="empty">
