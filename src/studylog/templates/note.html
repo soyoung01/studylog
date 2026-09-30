@@ -11,6 +11,12 @@
     {% for t in note.tags %}<a class="chip" href="{{ url_for('index', tag=t) }}">#{{ t }}</a>{% endfor %}
   </footer>
   <div class="actions">
+    <form method="post" action="{{ url_for('set_favorite', note_id=note.id) }}" class="fav-form">
+      <input type="hidden" name="favorite" value="{{ '0' if note.favorite else '1' }}">
+      <button type="submit" class="fav{{ ' is-on' if note.favorite }}">
+        {{ '★ 즐겨찾기 해제' if note.favorite else '☆ 즐겨찾기에 추가' }}
+      </button>
+    </form>
     <a class="back" href="{{ url_for('edit_note_form', note_id=note.id) }}">노트 수정하기</a>
     <form method="post" action="{{ url_for('delete_note', note_id=note.id) }}"
           onsubmit="return confirm('이 노트를 삭제할까요?');">

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from typing import Any
+from urllib.parse import urlsplit
 
 from dotenv import load_dotenv
 from flask import Flask, abort, flash, jsonify, redirect, render_template, request, url_for
@@ -15,6 +16,12 @@ from .seed import seed_if_empty
 THEME_COOKIE = "theme"
 THEMES = ("light", "dark")
 THEME_MAX_AGE = 60 * 60 * 24 * 365
+
+
+def _is_safe_redirect(target: str) -> bool:
+    # 같은 사이트 내부 경로로만 되돌아가도록 제한한다(오픈 리다이렉트 방지).
+    parts = urlsplit(target)
+    return target.startswith("/") and not target.startswith("//") and not parts.scheme and not parts.netloc
 
 
 def create_app(config: dict[str, Any] | None = None) -> Flask:
@@ -55,12 +62,14 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     def index() -> str:
         tag = request.args.get("tag") or None
         query = request.args.get("q") or None
+        favorites_only = request.args.get("favorites") == "1"
         return render_template(
             "index.html",
-            notes=repo.list_notes(tag=tag, query=query),
+            notes=repo.list_notes(tag=tag, query=query, favorites_only=favorites_only),
             tags=repo.all_tags(),
             active_tag=tag,
             query=query or "",
+            favorites_only=favorites_only,
             total=repo.count(),
         )
 
@@ -111,9 +120,27 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         flash("노트를 삭제했어요.", "ok")
         return redirect(url_for("index"))
 
+    @app.post("/notes/<int:note_id>/favorite")
+    def set_favorite(note_id: int) -> Response:
+        value = request.form.get("favorite")
+        if value not in ("0", "1"):
+            abort(400)
+        favorite = value == "1"
+        if not repo.set_favorite(note_id, favorite):
+            abort(404)
+        flash("즐겨찾기에 추가했어요." if favorite else "즐겨찾기에서 해제했어요.", "ok")
+        next_url = request.form.get("next", "")
+        if _is_safe_redirect(next_url):
+            return redirect(next_url)
+        return redirect(url_for("note_detail", note_id=note_id))
+
     @app.get("/api/notes")
     def api_notes() -> Response:
-        notes = repo.list_notes(tag=request.args.get("tag") or None, query=request.args.get("q") or None)
+        notes = repo.list_notes(
+            tag=request.args.get("tag") or None,
+            query=request.args.get("q") or None,
+            favorites_only=request.args.get("favorites") == "1",
+        )
         return jsonify([n.to_dict() for n in notes])
 
     @app.get("/export")

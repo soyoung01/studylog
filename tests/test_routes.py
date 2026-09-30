@@ -138,3 +138,74 @@ def test_invalid_theme_cookie_is_ignored(client: FlaskClient) -> None:
 
 def test_health(client: FlaskClient) -> None:
     assert client.get("/health").get_json()["status"] == "ok"
+
+
+def test_favorite_adds_and_redirects_to_detail(client: FlaskClient, repo: NoteRepository) -> None:
+    note = repo.add("강의", "t", "b", [])
+    res = client.post(f"/notes/{note.id}/favorite", data={"favorite": "1"})
+    assert res.status_code == 302
+    assert res.headers["Location"] == f"/notes/{note.id}"
+    fetched = repo.get(note.id)
+    assert fetched is not None and fetched.favorite is True
+
+
+def test_favorite_redirects_to_next(client: FlaskClient, repo: NoteRepository) -> None:
+    note = repo.add("강의", "t", "b", [])
+    res = client.post(f"/notes/{note.id}/favorite", data={"favorite": "1", "next": "/?tag=x"})
+    assert res.headers["Location"] == "/?tag=x"
+
+
+def test_favorite_removes(client: FlaskClient, repo: NoteRepository) -> None:
+    note = repo.add("강의", "t", "b", [])
+    repo.set_favorite(note.id, True)
+    client.post(f"/notes/{note.id}/favorite", data={"favorite": "0"})
+    fetched = repo.get(note.id)
+    assert fetched is not None and fetched.favorite is False
+
+
+def test_favorite_is_idempotent(client: FlaskClient, repo: NoteRepository) -> None:
+    note = repo.add("강의", "t", "b", [])
+    client.post(f"/notes/{note.id}/favorite", data={"favorite": "1"})
+    client.post(f"/notes/{note.id}/favorite", data={"favorite": "1"})
+    fetched = repo.get(note.id)
+    assert fetched is not None and fetched.favorite is True
+
+
+def test_favorite_rejects_unsafe_next(client: FlaskClient, repo: NoteRepository) -> None:
+    note = repo.add("강의", "t", "b", [])
+    for bad in ("https://evil.example", "//evil.example", "javascript:alert(1)"):
+        res = client.post(f"/notes/{note.id}/favorite", data={"favorite": "1", "next": bad})
+        assert res.headers["Location"] == f"/notes/{note.id}"
+
+
+def test_favorite_invalid_value_400(client: FlaskClient, repo: NoteRepository) -> None:
+    note = repo.add("강의", "t", "b", [])
+    assert client.post(f"/notes/{note.id}/favorite", data={"favorite": "yes"}).status_code == 400
+    assert client.post(f"/notes/{note.id}/favorite").status_code == 400
+
+
+def test_favorite_404(client: FlaskClient) -> None:
+    assert client.post("/notes/999/favorite", data={"favorite": "1"}).status_code == 404
+
+
+def test_index_favorites_filter(client: FlaskClient, repo: NoteRepository) -> None:
+    a = repo.add("강의", "즐겨찾기 노트", "x", [])
+    repo.add("강의", "일반 노트", "y", [])
+    repo.set_favorite(a.id, True)
+    html = client.get("/?favorites=1").get_data(as_text=True)
+    assert "즐겨찾기 노트" in html
+    assert "일반 노트" not in html
+    assert "즐겨찾기 해제" in html
+
+
+def test_note_detail_shows_favorite_button(client: FlaskClient, repo: NoteRepository) -> None:
+    note = repo.add("강의", "t", "b", [])
+    assert "즐겨찾기에 추가" in client.get(f"/notes/{note.id}").get_data(as_text=True)
+
+
+def test_api_notes_favorites(client: FlaskClient, repo: NoteRepository) -> None:
+    a = repo.add("강의", "a", "x", [])
+    repo.add("강의", "b", "y", [])
+    repo.set_favorite(a.id, True)
+    data = client.get("/api/notes?favorites=1").get_json()
+    assert [(n["title"], n["favorite"]) for n in data] == [("a", True)]

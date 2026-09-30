@@ -11,6 +11,7 @@ class Note:
     body: str
     created_at: str
     tags: list[str] = field(default_factory=list)
+    favorite: bool = False
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -20,6 +21,7 @@ class Note:
             "body": self.body,
             "created_at": self.created_at,
             "tags": self.tags,
+            "favorite": self.favorite,
         }
 
 
